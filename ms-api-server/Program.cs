@@ -110,6 +110,10 @@ namespace D365MetadataService
             // Register FileSystemManager singleton instance for proper assembly loading and path discovery
             services.AddSingleton<FileSystemManager>(_ => FileSystemManager.Instance);
 
+            // Register Label Parser Service
+            services.AddSingleton<LabelParser>(sp => 
+                new LabelParser(config.D365Config.PackagesLocalDirectory, sp.GetRequiredService<ILogger>()));
+
             // Register all request handlers
             services.AddSingleton<IRequestHandler, CreateObjectHandler>();
             services.AddSingleton<IRequestHandler, CreateFormHandler>();  // Enhanced form handler with pattern support
@@ -122,6 +126,7 @@ namespace D365MetadataService
             services.AddSingleton<IRequestHandler, ModelsHandler>();
             services.AddSingleton<IRequestHandler, AOTStructureHandler>();
             services.AddSingleton<IRequestHandler, SetupInfoHandler>();
+            services.AddSingleton<IRequestHandler, LabelHandler>();
             services.AddSingleton<IRequestHandler, ListObjectsByModelHandler>();
             services.AddSingleton<IRequestHandler, AvailableObjectTypesHandler>();
             services.AddSingleton<IRequestHandler, ShutdownHandler>(sp =>

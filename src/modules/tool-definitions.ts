@@ -809,6 +809,90 @@ export class ToolDefinitions {
             ]
           }
         },
+        {
+          name: "get_label",
+          description: "Get D365 F&O label text by label ID from local metadata files. Supports multi-language with automatic fallback to en-US. No authentication required - works offline with local PackagesLocalDirectory.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              labelId: {
+                type: "string",
+                description: "Label reference in format @LabelFileID:LabelID (e.g., '@MyLabel:FormTitleLabelId'). The LabelFileID comes from the filename (MyLabel.en-US.label.txt)."
+              },
+              language: {
+                type: "string",
+                description: "Language code (e.g., 'en-US', 'de-DE', 'fr-FR', 'es-ES'). Default: 'en-US'. Automatically falls back to en-US if translation not found.",
+                default: "en-US"
+              },
+              includeDescription: {
+                type: "boolean",
+                description: "Include label description in response if available. Default: false",
+                default: false
+              }
+            },
+            required: ["labelId"],
+            examples: [
+              {
+                description: "Get an English label with description",
+                parameters: {
+                  labelId: "@MyLabel:FormTitleLabelId",
+                  language: "en-US",
+                  includeDescription: true
+                }
+              },
+              {
+                description: "Get a German label (falls back to English if not found)",
+                parameters: {
+                  labelId: "@MyLabel:FieldCompanyLabelId",
+                  language: "de-DE"
+                }
+              }
+            ]
+          }
+        },
+        {
+          name: "get_labels_batch",
+          description: "Get multiple D365 F&O label texts efficiently in a single request. Reads label files once per LabelFileID for optimal performance. Supports multi-language with automatic fallback.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              labelIds: {
+                type: "array",
+                items: { type: "string" },
+                description: "Array of label references in format @LabelFileID:LabelID (e.g., ['@MyLabel:FormTitleLabelId', '@MyLabel:FieldCompanyLabelId'])"
+              },
+              language: {
+                type: "string",
+                description: "Language code for all labels. Default: 'en-US'. Falls back to en-US for missing translations.",
+                default: "en-US"
+              }
+            },
+            required: ["labelIds"],
+            examples: [
+              {
+                description: "Get multiple labels in English",
+                parameters: {
+                  labelIds: [
+                    "@MyLabel:FormTitleLabelId",
+                    "@MyLabel:FieldCompanyLabelId",
+                    "@ApplicationCommon:SaveButton"
+                  ],
+                  language: "en-US"
+                }
+              },
+              {
+                description: "Get multiple labels in German",
+                parameters: {
+                  labelIds: [
+                    "@MyLabel:FormTitleLabelId",
+                    "@MyLabel:ButtonSaveLabelId"
+                  ],
+                  language: "de-DE"
+                }
+              }
+            ]
+          }
+        },
       ],
     };
   }
