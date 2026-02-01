@@ -139,6 +139,9 @@ namespace D365MetadataService
             services.AddSingleton<IRequestHandler, ObjectPropertiesHandler>();
             services.AddSingleton<IRequestHandler, ObjectCollectionHandler>();
             services.AddSingleton<IRequestHandler, ObjectCodeHandler>();
+            
+            // Register label handler
+            services.AddSingleton<IRequestHandler, LabelHandler>();
 
             // Register handler factory
             services.AddSingleton<RequestHandlerFactory>();

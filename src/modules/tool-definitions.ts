@@ -809,6 +809,89 @@ export class ToolDefinitions {
             ]
           }
         },
+        {
+          name: "get_label",
+          description: "🏷️ Retrieve a single D365 F&O label text by label ID. Labels are localized strings used throughout D365 for UI elements, field names, and messages. Supports multiple languages with automatic fallback to English.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              labelId: {
+                type: "string",
+                description: "Label ID to retrieve (e.g., '@SYS13342', '@GLS63332', 'SYS:Label1'). Can be specified with or without @ prefix. Format can be @LabelFile:LabelId or @LabelFileNumber."
+              },
+              language: {
+                type: "string",
+                description: "Language code for label retrieval (e.g., 'en-US', 'de-DE', 'fr-FR', 'es-ES'). Defaults to 'en-US' if not specified. If label not found in requested language, falls back to English.",
+                default: "en-US"
+              }
+            },
+            required: ["labelId"],
+            examples: [
+              {
+                description: "🏷️ Get a system label in English",
+                parameters: {
+                  labelId: "@SYS13342",
+                  language: "en-US"
+                }
+              },
+              {
+                description: "🏷️ Get a label in German with fallback",
+                parameters: {
+                  labelId: "@GLS63332",
+                  language: "de-DE"
+                }
+              },
+              {
+                description: "🏷️ Get a label using default language (en-US)",
+                parameters: {
+                  labelId: "@SYS9490"
+                }
+              }
+            ]
+          }
+        },
+        {
+          name: "get_labels_batch",
+          description: "🏷️ Retrieve multiple D365 F&O labels efficiently in a single request. This is more efficient than calling get_label multiple times. Perfect for retrieving label text for forms, reports, or UI components that need multiple localized strings.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              labelIds: {
+                type: "array",
+                items: { type: "string" },
+                description: "Array of label IDs to retrieve (e.g., ['@SYS13342', '@SYS9490', '@GLS63332']). Each ID can be specified with or without @ prefix."
+              },
+              language: {
+                type: "string",
+                description: "Language code for all labels (e.g., 'en-US', 'de-DE', 'fr-FR', 'es-ES'). Defaults to 'en-US'. If any label not found in requested language, falls back to English for that label.",
+                default: "en-US"
+              }
+            },
+            required: ["labelIds"],
+            examples: [
+              {
+                description: "🏷️ Get multiple system labels in English",
+                parameters: {
+                  labelIds: ["@SYS13342", "@SYS9490", "@GLS63332"],
+                  language: "en-US"
+                }
+              },
+              {
+                description: "🏷️ Get labels for a form in French",
+                parameters: {
+                  labelIds: ["@SYS1234", "@SYS5678", "@SYS9012"],
+                  language: "fr-FR"
+                }
+              },
+              {
+                description: "🏷️ Get labels using default language",
+                parameters: {
+                  labelIds: ["@SYS13342", "@SYS9490"]
+                }
+              }
+            ]
+          }
+        },
       ],
     };
   }

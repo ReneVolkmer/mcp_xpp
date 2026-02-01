@@ -2073,4 +2073,160 @@ export class ToolHandlers {
   }
 
 
+  static async getLabel(args: any, requestId: string): Promise<any> {
+    try {
+      // Validate input parameters
+      const schema = z.object({
+        labelId: z.string().min(1, "labelId is required"),
+        language: z.string().optional().default("en-US"),
+      });
+
+      const { labelId, language } = schema.parse(args);
+
+      console.log(`🏷️ Getting label: ${labelId}, Language: ${language}`);
+
+      // Import D365ServiceClient dynamically
+      const { D365ServiceClient } = await import('./d365-service-client.js');
+      const client = new D365ServiceClient('mcp-xpp-d365-service', 10000, 30000);
+      
+      await client.connect();
+      
+      const result = await client.sendRequest({
+        action: "labels",
+        parameters: {
+          operation: "get_label",
+          labelId: labelId,
+          language: language,
+        },
+      });
+      
+      await client.disconnect();
+
+      if (!result.success) {
+        const errorMsg = `Failed to retrieve label: ${result.error || 'Unknown error'}`;
+        console.error(`❌ ${errorMsg}`);
+        return await createLoggedResponse(errorMsg, requestId, "get_label");
+      }
+
+      const labelData = result.data;
+      
+      // Format the response
+      let content = `Label: ${labelData.labelId}\n`;
+      content += `Language: ${labelData.language}\n`;
+      
+      if (labelData.found) {
+        content += `Text: ${labelData.labelText}\n`;
+        content += `✅ Label found successfully\n`;
+      } else {
+        content += `❌ Label not found\n`;
+        content += `The label "${labelData.labelId}" does not exist in the D365 metadata for language "${labelData.language}".\n`;
+      }
+
+      return await createLoggedResponse(content, requestId, "get_label");
+    } catch (error) {
+      console.error('❌ Error in getLabel:', error);
+      
+      if (error instanceof z.ZodError) {
+        const issues = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ');
+        throw new McpError(ErrorCode.InvalidParams, `❌ Invalid parameters: ${issues}`);
+      }
+      
+      if (error instanceof McpError) {
+        throw error;
+      }
+      
+      throw new McpError(
+        ErrorCode.InternalError,
+        `❌ Error retrieving label: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  static async getLabelsBatch(args: any, requestId: string): Promise<any> {
+    try {
+      // Validate input parameters
+      const schema = z.object({
+        labelIds: z.array(z.string()).min(1, "At least one labelId is required"),
+        language: z.string().optional().default("en-US"),
+      });
+
+      const { labelIds, language } = schema.parse(args);
+
+      console.log(`🏷️ Getting batch of ${labelIds.length} labels, Language: ${language}`);
+
+      // Import D365ServiceClient dynamically
+      const { D365ServiceClient } = await import('./d365-service-client.js');
+      const client = new D365ServiceClient('mcp-xpp-d365-service', 10000, 30000);
+      
+      await client.connect();
+      
+      const result = await client.sendRequest({
+        action: "labels",
+        parameters: {
+          operation: "get_labels_batch",
+          labelIds: labelIds,
+          language: language,
+        },
+      });
+      
+      await client.disconnect();
+
+      if (!result.success) {
+        const errorMsg = `Failed to retrieve labels: ${result.error || 'Unknown error'}`;
+        console.error(`❌ ${errorMsg}`);
+        return await createLoggedResponse(errorMsg, requestId, "get_labels_batch");
+      }
+
+      const batchData = result.data;
+      
+      // Format the response
+      let content = `Batch Label Retrieval Results\n`;
+      content += `${'='.repeat(50)}\n`;
+      content += `Language: ${batchData.language}\n`;
+      content += `Total Requested: ${batchData.totalRequested}\n`;
+      content += `Total Found: ${batchData.totalFound}\n`;
+      content += `Missing: ${batchData.missingLabels.length}\n\n`;
+
+      if (batchData.labels && Object.keys(batchData.labels).length > 0) {
+        content += `Found Labels:\n`;
+        content += `${'-'.repeat(50)}\n`;
+        for (const [labelId, labelText] of Object.entries(batchData.labels)) {
+          content += `${labelId}: ${labelText}\n`;
+        }
+      }
+
+      if (batchData.missingLabels && batchData.missingLabels.length > 0) {
+        content += `\nMissing Labels:\n`;
+        content += `${'-'.repeat(50)}\n`;
+        for (const missingLabel of batchData.missingLabels) {
+          content += `❌ ${missingLabel}\n`;
+        }
+      }
+
+      const successRate = batchData.totalRequested > 0 
+        ? ((batchData.totalFound / batchData.totalRequested) * 100).toFixed(1) 
+        : 0;
+      content += `\n✅ Success Rate: ${successRate}%\n`;
+
+      return await createLoggedResponse(content, requestId, "get_labels_batch");
+    } catch (error) {
+      console.error('❌ Error in getLabelsBatch:', error);
+      
+      if (error instanceof z.ZodError) {
+        const issues = error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ');
+        throw new McpError(ErrorCode.InvalidParams, `❌ Invalid parameters: ${issues}`);
+      }
+      
+      if (error instanceof McpError) {
+        throw error;
+      }
+      
+      throw new McpError(
+        ErrorCode.InternalError,
+        `❌ Error retrieving labels batch: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+
 }
