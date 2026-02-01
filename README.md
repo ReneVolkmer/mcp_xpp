@@ -8,6 +8,14 @@ A Model Context Protocol (MCP) server for Microsoft Dynamics 365 Finance & Opera
 
 ## Recent Updates ✨
 
+**January 31, 2026 - Label Management Feature:**
+- 🏷️ **NEW get_label Tool**: Retrieve D365 F&O label text by label ID with multi-language support
+- 🏷️ **NEW get_labels_batch Tool**: Efficiently retrieve multiple labels in a single request
+- 🌐 **Multi-language Support**: Supports all D365 language codes with automatic fallback to English
+- 📊 **Batch Efficiency**: Optimized batch operations for retrieving multiple labels
+- ✅ **Comprehensive Testing**: Full test suite covering single/batch retrieval, languages, and edge cases
+- 💡 **Use Cases**: Display user-friendly names, build multi-language interfaces, create documentation
+
 **September 19, 2025 - Safe Object Deletion Feature:**
 - 🗑️ **NEW delete_xpp_object Tool**: Safe D365 object deletion with dependency validation and cascade support
 - 🛡️ **Dependency Protection**: Prevents deletion if other objects depend on target, avoiding breaking changes
@@ -36,6 +44,7 @@ This MCP server provides D365 F&O development capabilities including:
 - **Object Deletion**: ✨ **NEW** - Safe object deletion with dependency validation and cascade support
 - **Object Modification**: Add methods, fields, and other components to existing objects
 - **Object Inspection**: Analyze D365 objects and extract X++ source code
+- **Label Management**: 🏷️ **NEW** - Retrieve D365 label text with multi-language support for localization
 - **Codebase Search**: Browse and search through D365 codebases with pattern matching
 - **MCP Protocol**: Compatible with Claude Desktop, VS Code, and other MCP clients
 
@@ -59,7 +68,7 @@ The architecture enables D365 development from various MCP-compatible clients wh
 
 ## Available Tools
 
-The server provides 10 specialized tools for D365 development:
+The server provides 12 specialized tools for D365 development:
 
 1. **create_xpp_object** - Create D365 objects (classes, tables, enums, etc.) - *Note: Use create_form for forms*
 2. **create_form** - ✨ **NEW** - Specialized form creation with pattern support and datasource integration
@@ -71,6 +80,8 @@ The server provides 10 specialized tools for D365 development:
 8. **inspect_xpp_object** - Object analysis with X++ source code extraction
 9. **get_current_config** - System configuration and status
 10. **build_object_index** - Index management for search performance
+11. **get_label** - 🏷️ **NEW** - Retrieve a single D365 F&O label text by label ID with multi-language support
+12. **get_labels_batch** - 🏷️ **NEW** - Retrieve multiple labels efficiently in a single request
 
 ## Prerequisites
 
@@ -487,6 +498,88 @@ Discovers available modification methods for D365 object types.
 
 **Parameters:**
 - `objectType` (string, required) - D365 object type to analyze
+
+### Label Management
+
+#### `get_label`
+Retrieves a single D365 F&O label text by label ID with multi-language support.
+
+**Parameters:**
+- `labelId` (string, required) - Label ID to retrieve (e.g., '@SYS13342', '@GLS63332')
+- `language` (string, optional) - Language code (default: 'en-US')
+
+**Example:**
+```javascript
+get_label({
+  "labelId": "@SYS13342",
+  "language": "en-US"
+})
+```
+
+**Response:**
+```
+Label: @SYS13342
+Language: en-US
+Text: Company
+✅ Label found successfully
+```
+
+**Supported Languages:**
+- `en-US` - English (United States)
+- `de-DE` - German (Germany)
+- `fr-FR` - French (France)
+- `es-ES` - Spanish (Spain)
+- And all other D365 supported language codes
+
+**Features:**
+- Automatic fallback to English if translation not found
+- Handles label IDs with or without @ prefix
+- Clear indication when label doesn't exist
+
+#### `get_labels_batch`
+Retrieves multiple D365 F&O labels efficiently in a single request.
+
+**Parameters:**
+- `labelIds` (string[], required) - Array of label IDs to retrieve
+- `language` (string, optional) - Language code (default: 'en-US')
+
+**Example:**
+```javascript
+get_labels_batch({
+  "labelIds": ["@SYS13342", "@SYS9490", "@GLS63332"],
+  "language": "en-US"
+})
+```
+
+**Response:**
+```
+Batch Label Retrieval Results
+==================================================
+Language: en-US
+Total Requested: 3
+Total Found: 3
+Missing: 0
+
+Found Labels:
+--------------------------------------------------
+@SYS13342: Company
+@SYS9490: Customer
+@GLS63332: General ledger
+
+✅ Success Rate: 100.0%
+```
+
+**Benefits:**
+- More efficient than multiple individual calls
+- Batch processing reduces network overhead
+- Clear reporting of missing labels
+- Success rate calculation
+
+**Use Cases:**
+- Retrieving labels for form UI elements
+- Building multi-language interfaces
+- Generating documentation with proper terminology
+- Validating label usage in code
 
 ### System Management
 
