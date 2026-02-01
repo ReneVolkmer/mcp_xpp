@@ -536,6 +536,11 @@ Text: Company
 - Handles label IDs with or without @ prefix
 - Clear indication when label doesn't exist
 
+**Known Limitations:**
+- Language parameter acceptance varies by D365 version and metadata API implementation
+- In some environments, labels may return default language text regardless of requested language
+- For full multi-language support in all scenarios, direct label file XML parsing may be required
+
 #### `get_labels_batch`
 Retrieves multiple D365 F&O labels efficiently in a single request.
 

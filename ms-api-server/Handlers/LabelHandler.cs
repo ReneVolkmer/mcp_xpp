@@ -278,36 +278,51 @@ namespace D365MetadataService.Handlers
                 if (label == null)
                     return null;
 
-                // Try to get the label text for the specified language
-                // The AxLabelFile object has a Language property that contains the labels
-                // We need to use reflection to access the labels for a specific language
+                // NOTE: Language-specific label retrieval is a known limitation
+                // The D365 Metadata API (Microsoft.Dynamics.AX.Metadata.Service) 
+                // provides label files per language, but the Read() method returns
+                // the label file object without direct access to language-specific text.
+                // 
+                // Current implementation returns the default label text from the file.
+                // For full multi-language support, a different approach would be needed:
+                // - Read the label file XML directly from disk
+                // - Parse language-specific sections
+                // - Extract text for the requested language
                 
-                // Note: The actual implementation may vary depending on the D365 metadata API version
-                // This is a simplified approach that tries to get the label text
-                
-                // Try to get the label text directly
-                var labelProperty = label.GetType().GetProperty("LabelText");
-                if (labelProperty != null)
+                // Try to get the label ID (name)
+                var nameProperty = label.GetType().GetProperty("Name");
+                if (nameProperty != null)
                 {
-                    var labelText = labelProperty.GetValue(label) as string;
-                    if (!string.IsNullOrEmpty(labelText))
+                    var name = nameProperty.GetValue(label) as string;
+                    Logger.Debug("Label name: {Name}", name);
+                }
+
+                // Try to get label text - AxLabelFile may have different properties
+                // depending on D365 version
+                var possibleProperties = new[] { 
+                    "LabelText", "Text", "Value", "Label", "Comment" 
+                };
+
+                foreach (var propName in possibleProperties)
+                {
+                    var property = label.GetType().GetProperty(propName);
+                    if (property != null)
                     {
-                        return labelText;
+                        var value = property.GetValue(label);
+                        if (value != null && !string.IsNullOrWhiteSpace(value.ToString()))
+                        {
+                            Logger.Debug("Found label text via property {PropertyName}: {Value}", 
+                                propName, value);
+                            return value.ToString();
+                        }
                     }
                 }
 
-                // Alternative: Try to access label content through Labels property
-                var labelsProperty = label.GetType().GetProperty("Labels");
-                if (labelsProperty != null)
-                {
-                    var labels = labelsProperty.GetValue(label);
-                    if (labels != null)
-                    {
-                        // Try to find the label for the specified language
-                        // This may require further implementation based on the actual structure
-                        return labels.ToString();
-                    }
-                }
+                // If no standard properties found, try to access via indexer or collection
+                Logger.Warning("Unable to extract label text from AxLabelFile for language {Language}. " +
+                    "Available properties: {Properties}", 
+                    language,
+                    string.Join(", ", label.GetType().GetProperties().Select(p => p.Name)));
 
                 return null;
             }

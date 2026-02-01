@@ -395,8 +395,17 @@ describe('🏷️ Error Handling & Edge Cases', () => {
     
     console.log('🏷️ Testing large batch request...');
     
-    // Create a list of many label IDs
-    const manyLabels = Array(50).fill('@SYS13342');
+    // Create a list of many different label IDs
+    // Using a variety of system labels to test batch processing with unique labels
+    const baseLabelIds = ['@SYS13342', '@SYS9490', '@SYS1234', '@SYS5678', '@GLS63332'];
+    const manyLabels = [];
+    
+    // Generate 50 label IDs by appending numbers to base labels
+    // This creates unique label IDs (most won't exist, but tests batch handling)
+    for (let i = 0; i < 50; i++) {
+      const baseLabel = baseLabelIds[i % baseLabelIds.length];
+      manyLabels.push(baseLabel.replace(/\d+$/, '') + (10000 + i));
+    }
     
     const result = await mcpClient.executeTool('get_labels_batch', {
       labelIds: manyLabels
