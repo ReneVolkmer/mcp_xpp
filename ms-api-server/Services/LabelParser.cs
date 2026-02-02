@@ -20,7 +20,11 @@ namespace D365MetadataService.Services
 
     /// <summary>
     /// Parser for D365 F&O label files from local metadata
-    /// Handles format: LabelID:Translated text with optional ;Description
+    /// Handles format: LabelID=Translated text
+    /// Optional description lines start with semicolon (;Description)
+    /// Example:
+    ///   ABBYYAmount=ABBYY Částka
+    ///   ;This is an optional description
     /// </summary>
     public class LabelParser
     {
@@ -31,7 +35,7 @@ namespace D365MetadataService.Services
         private readonly ConcurrentDictionary<string, Dictionary<string, LabelInfo>> _labelCache = new();
         
         // Regex patterns for parsing
-        private static readonly Regex LabelLineRegex = new Regex(@"^([A-Za-z0-9_]+):(.*)$", RegexOptions.Compiled);
+        private static readonly Regex LabelLineRegex = new Regex(@"^([A-Za-z0-9_]+)=(.*)$", RegexOptions.Compiled);
         private static readonly Regex DescriptionLineRegex = new Regex(@"^;(.*)$", RegexOptions.Compiled);
         private static readonly Regex LabelReferenceRegex = new Regex(@"^@([A-Za-z0-9_]+):([A-Za-z0-9_]+)$", RegexOptions.Compiled);
 
@@ -300,8 +304,12 @@ namespace D365MetadataService.Services
 
         /// <summary>
         /// Parse a label file and return all labels
-        /// Format: LabelID:Translated text
-        ///         ;Description (optional, next line)
+        /// Format: LabelID=Translated text
+        ///         ;Description (optional, next line, starts with semicolon)
+        /// Example file content:
+        ///   ABBYYActiveErr01=Není zadaný název datového zdroje
+        ///   ABBYYAmount=ABBYY Částka
+        ///   ;Optional description for the label above
         /// </summary>
         private Dictionary<string, LabelInfo> ParseLabelFile(string filePath)
         {

@@ -571,8 +571,16 @@ get_labels_batch({
 
 **Label File Format:**
 ```
-LabelID:Translated text
+LabelID=Translated text
 ;Description (optional, next line, starts with semicolon)
+```
+
+**Example:**
+```
+ABBYYActiveErr01=Není zadaný název datového zdroje (DSN) pro ODBC spojení.
+ABBYYAmount=ABBYY Částka
+;Optional description line
+ABBYYCompanyParamaters=Parametry společnosti ABBYY
 ```
 
 **Label File Location:**
