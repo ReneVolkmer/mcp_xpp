@@ -8,6 +8,14 @@ A Model Context Protocol (MCP) server for Microsoft Dynamics 365 Finance & Opera
 
 ## Recent Updates ✨
 
+**February 1, 2026 - Label Management Tools:**
+- 🏷️ **NEW get_label Tool**: Get D365 F&O label text by label ID from local metadata files
+- 📦 **NEW get_labels_batch Tool**: Retrieve multiple labels efficiently in a single request
+- 🌐 **Multi-Language Support**: Automatic fallback to en-US for missing translations
+- 💾 **Caching**: File-based caching for improved performance
+- 📂 **Local Metadata**: Works with PackagesLocalDirectory - no authentication required
+- 🎯 **Layering Support**: Custom model labels override standard ones
+
 **September 19, 2025 - Safe Object Deletion Feature:**
 - 🗑️ **NEW delete_xpp_object Tool**: Safe D365 object deletion with dependency validation and cascade support
 - 🛡️ **Dependency Protection**: Prevents deletion if other objects depend on target, avoiding breaking changes
@@ -36,6 +44,7 @@ This MCP server provides D365 F&O development capabilities including:
 - **Object Deletion**: ✨ **NEW** - Safe object deletion with dependency validation and cascade support
 - **Object Modification**: Add methods, fields, and other components to existing objects
 - **Object Inspection**: Analyze D365 objects and extract X++ source code
+- **Label Management**: ✨ **NEW** - Retrieve D365 label texts from local metadata with multi-language support
 - **Codebase Search**: Browse and search through D365 codebases with pattern matching
 - **MCP Protocol**: Compatible with Claude Desktop, VS Code, and other MCP clients
 
@@ -59,7 +68,7 @@ The architecture enables D365 development from various MCP-compatible clients wh
 
 ## Available Tools
 
-The server provides 10 specialized tools for D365 development:
+The server provides 12 specialized tools for D365 development:
 
 1. **create_xpp_object** - Create D365 objects (classes, tables, enums, etc.) - *Note: Use create_form for forms*
 2. **create_form** - ✨ **NEW** - Specialized form creation with pattern support and datasource integration
@@ -71,6 +80,8 @@ The server provides 10 specialized tools for D365 development:
 8. **inspect_xpp_object** - Object analysis with X++ source code extraction
 9. **get_current_config** - System configuration and status
 10. **build_object_index** - Index management for search performance
+11. **get_label** - ✨ **NEW** - Get D365 F&O label text by label ID from local metadata files
+12. **get_labels_batch** - ✨ **NEW** - Get multiple D365 F&O labels efficiently in a single request
 
 ## Prerequisites
 
@@ -487,6 +498,87 @@ Discovers available modification methods for D365 object types.
 
 **Parameters:**
 - `objectType` (string, required) - D365 object type to analyze
+
+### Label Management
+
+#### `get_label`
+Get D365 F&O label text by label ID from local metadata files.
+
+**Parameters:**
+- `labelId` (string, required) - Label reference format: @LabelFileID:LabelID (e.g., '@MyLabel:FormTitleLabelId')
+- `language` (string, optional) - Language code (default: "en-US"). Supported: 'en-US', 'de-DE', 'fr-FR', 'es-ES', etc.
+- `includeDescription` (boolean, optional) - Include description (default: false)
+
+**Example:**
+```javascript
+get_label({
+  "labelId": "@MyLabel:FormTitleLabelId",
+  "language": "en-US",
+  "includeDescription": true
+})
+```
+
+**Response:**
+```
+🏷️  Label: @MyLabel:FormTitleLabelId
+📂 Label File: MyLabel
+🔖 Label ID: FormTitleLabelId
+🌐 Language: en-US
+📝 Text: "Customer Details"
+💬 Description: This label is used for the header of the customer details form
+✅ Status: Found
+```
+
+#### `get_labels_batch`
+Get multiple D365 F&O labels efficiently in a single request.
+
+**Parameters:**
+- `labelIds` (array, required) - Array of label references in format @LabelFileID:LabelID
+- `language` (string, optional) - Language code (default: "en-US")
+
+**Example:**
+```javascript
+get_labels_batch({
+  "labelIds": [
+    "@MyLabel:FormTitleLabelId",
+    "@MyLabel:FieldCompanyLabelId",
+    "@ApplicationCommon:SaveButton"
+  ],
+  "language": "de-DE"
+})
+```
+
+**Response:**
+```
+🏷️  Batch Label Retrieval
+🌐 Language: de-DE
+📊 Requested: 3 labels
+✅ Found: 3 labels
+
+📝 Labels:
+   • @MyLabel:FormTitleLabelId: "Kundendetails"
+   • @MyLabel:FieldCompanyLabelId: "Firmenname"
+   • @ApplicationCommon:SaveButton: "Speichern"
+```
+
+**Key Features:**
+- ✅ Works with local metadata files (no HTTP/authentication needed)
+- ✅ Multi-language support with automatic en-US fallback
+- ✅ Caching for performance
+- ✅ Supports D365 layering (custom models override standard)
+- ✅ Optional description retrieval
+- ✅ Batch operations for efficiency
+
+**Label File Format:**
+```
+LabelID:Translated text
+;Description (optional, next line, starts with semicolon)
+```
+
+**Label File Location:**
+```
+PackagesLocalDirectory\<Package>\<Model>\AxLabelFile\LabelResources\<Language>\<LabelFileID>.<language>.label.txt
+```
 
 ### System Management
 
