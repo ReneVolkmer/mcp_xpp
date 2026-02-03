@@ -100,6 +100,12 @@ export class ServerManager {
           case "execute_object_modification":
             return await ToolHandlers.executeObjectModification(args, requestId);
           
+          case "get_label":
+            return await ToolHandlers.getLabel(args, requestId);
+          
+          case "get_labels_batch":
+            return await ToolHandlers.getLabelsBatch(args, requestId);
+          
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,

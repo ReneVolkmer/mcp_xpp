@@ -7,6 +7,7 @@ import { AOTStructureManager } from "./aot-structure.js";
 import { ObjectIndexManager } from "./object-index.js";
 import { findXppObject } from "./parsers.js";
 import { getServerStartTime } from "../index.js";
+import { D365ServiceClient } from "./d365-service-client.js";
 
 import { ObjectCreators } from "./object-creators.js";
 import { SQLiteObjectLookup, ObjectLocation } from "./sqlite-lookup.js";
@@ -2070,6 +2071,164 @@ export class ToolHandlers {
     }
 
     return content;
+  }
+
+
+  /**
+   * Get a single D365 F&O label by label ID
+   */
+  static async getLabel(args: any, requestId: string): Promise<any> {
+    try {
+      // Validate required parameter
+      if (!args?.labelId) {
+        return await createLoggedResponse(
+          "❌ Error: labelId parameter is required (format: @LabelFileID:LabelID)",
+          requestId,
+          "get_label"
+        );
+      }
+
+      const labelId = args.labelId;
+      const language = args.language || "en-US";
+      const includeDescription = args.includeDescription || false;
+
+      // Connect to D365 service
+      const client = new D365ServiceClient();
+      await client.connect();
+
+      // Send request
+      const response = await client.sendRequest({
+        action: 'labels',
+        parameters: {
+          subAction: 'get',
+          labelId: labelId,
+          language: language,
+          includeDescription: includeDescription
+        }
+      });
+
+      await client.disconnect();
+
+      // Format response
+      if (response?.Success && response?.Data) {
+        const data = response.Data;
+        
+        if (data.found) {
+          let content = `🏷️  **Label:** ${data.labelId}\n`;
+          if (data.labelFileId) content += `📂 **Label File:** ${data.labelFileId}\n`;
+          if (data.actualLabelId) content += `🔖 **Label ID:** ${data.actualLabelId}\n`;
+          content += `🌐 **Language:** ${data.language}\n`;
+          content += `📝 **Text:** "${data.labelText}"\n`;
+          
+          if (data.description && includeDescription) {
+            content += `💬 **Description:** ${data.description}\n`;
+          }
+          
+          content += `✅ **Status:** Found\n`;
+          
+          if (data.fallbackApplied) {
+            content += `⚠️  **Note:** Fallback to en-US applied\n`;
+          }
+          
+          return await createLoggedResponse(content, requestId, "get_label");
+        } else {
+          return await createLoggedResponse(
+            `❌ Label not found: ${data.labelId}\n` +
+            `🌐 Language: ${data.language}\n` +
+            `💡 Make sure the label file exists in PackagesLocalDirectory`,
+            requestId,
+            "get_label"
+          );
+        }
+      } else {
+        return await createLoggedResponse(
+          `❌ Failed to retrieve label: ${response?.Error || 'Unknown error'}`,
+          requestId,
+          "get_label"
+        );
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      return await createLoggedResponse(
+        `❌ Error retrieving label: ${errorMsg}`,
+        requestId,
+        "get_label"
+      );
+    }
+  }
+
+  /**
+   * Get multiple D365 F&O labels efficiently in a batch
+   */
+  static async getLabelsBatch(args: any, requestId: string): Promise<any> {
+    try {
+      // Validate required parameter
+      if (!args?.labelIds || !Array.isArray(args.labelIds) || args.labelIds.length === 0) {
+        return await createLoggedResponse(
+          "❌ Error: labelIds parameter is required and must be a non-empty array",
+          requestId,
+          "get_labels_batch"
+        );
+      }
+
+      const labelIds = args.labelIds;
+      const language = args.language || "en-US";
+
+      // Connect to D365 service
+      const client = new D365ServiceClient();
+      await client.connect();
+
+      // Send request
+      const response = await client.sendRequest({
+        action: 'labels',
+        parameters: {
+          subAction: 'batch',
+          labelIds: labelIds,
+          language: language
+        }
+      });
+
+      await client.disconnect();
+
+      // Format response
+      if (response?.Success && response?.Data) {
+        const data = response.Data;
+        
+        let content = `🏷️  **Batch Label Retrieval**\n`;
+        content += `🌐 **Language:** ${data.language}\n`;
+        content += `📊 **Requested:** ${data.totalRequested} labels\n`;
+        content += `✅ **Found:** ${data.totalFound} labels\n\n`;
+        
+        if (data.totalFound > 0) {
+          content += `📝 **Labels:**\n`;
+          for (const [labelId, labelText] of Object.entries(data.labels)) {
+            content += `   • ${labelId}: "${labelText}"\n`;
+          }
+        }
+        
+        if (data.missingLabels && data.missingLabels.length > 0) {
+          content += `\n❌ **Missing Labels:**\n`;
+          data.missingLabels.forEach((labelId: string) => {
+            content += `   • ${labelId}\n`;
+          });
+        }
+        
+        return await createLoggedResponse(content, requestId, "get_labels_batch");
+      } else {
+        return await createLoggedResponse(
+          `❌ Failed to retrieve labels: ${response?.Error || 'Unknown error'}`,
+          requestId,
+          "get_labels_batch"
+        );
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      return await createLoggedResponse(
+        `❌ Error retrieving labels: ${errorMsg}`,
+        requestId,
+        "get_labels_batch"
+      );
+    }
   }
 
 
