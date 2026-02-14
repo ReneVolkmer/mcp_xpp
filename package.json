@@ -18,7 +18,9 @@
     "test:performance": "vitest run tests/performance.test.js",
     "test:integration": "vitest run tests/integration.test.js",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "mcpb:pack": "npm run build && mcpb pack",
+    "mcpb:validate": "mcpb validate"
   },
   "keywords": [
     "mcp",
@@ -46,7 +48,8 @@
     "@types/node": "^20.0.0",
     "ajv": "^8.17.1",
     "typescript": "^5.0.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "@anthropic-ai/mcpb": "^0.1.0"
   },
   "files": [
     "build"

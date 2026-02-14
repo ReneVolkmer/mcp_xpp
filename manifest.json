@@ -1,0 +1,119 @@
+{
+  "manifest_version": "0.2",
+  "name": "mcp-xpp-server",
+  "display_name": "MCP X++ Server",
+  "version": "1.0.0",
+  "description": "MCP server for Dynamics 365 Finance & Operations X++ development. Browse, create, modify, delete, search, and analyze D365 objects through intelligent tooling integrated with VS2022 extension APIs.",
+  "long_description": "A comprehensive MCP server for D365 F&O development that provides 12 specialized tools for managing X++ objects. Features include object creation (544+ types), form creation with pattern support, batch modifications, object inspection with X++ source extraction, fast SQLite-based search indexing, and label management. Connects to a companion C# .NET service via Named Pipes for real Microsoft.Dynamics.AX.Metadata API integration.",
+  "author": {
+    "name": "Rene Volkmer"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ReneVolkmer/mcp_xpp"
+  },
+  "keywords": [
+    "mcp",
+    "dynamics365",
+    "d365",
+    "x++",
+    "xpp",
+    "finance-operations",
+    "erp",
+    "metadata"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "build/index.js",
+    "mcp_config": {
+      "args": [
+        "--xpp-path",
+        "${user_config.xpp_path}",
+        "--xpp-metadata-folder",
+        "${user_config.xpp_metadata_folder}",
+        "--vs2022-extension-path",
+        "${user_config.vs2022_extension_path}"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "create_xpp_object",
+      "description": "Browse all 544+ available D365 F&O object types or create objects (classes, tables, enums, data entities, etc.) using VS2022 service integration."
+    },
+    {
+      "name": "create_form",
+      "description": "Create D365 forms with advanced pattern support, datasource integration, and form pattern discovery."
+    },
+    {
+      "name": "delete_xpp_object",
+      "description": "Safely delete D365 F&O objects with dependency validation and cascade deletion support."
+    },
+    {
+      "name": "find_xpp_object",
+      "description": "Find and analyze X++ objects (classes, tables, forms, etc.) by name, validating existence in the codebase."
+    },
+    {
+      "name": "inspect_xpp_object",
+      "description": "Advanced object inspection with summary-first architecture, targeted properties, collection browsing, and X++ source code extraction."
+    },
+    {
+      "name": "build_object_index",
+      "description": "Build or update the SQLite object index for faster searches across the D365 codebase."
+    },
+    {
+      "name": "get_current_config",
+      "description": "Get server configuration with flexible detail levels including model info and available object types."
+    },
+    {
+      "name": "search_objects_pattern",
+      "description": "Search D365 objects by name pattern using wildcards, or browse all objects in a specific model."
+    },
+    {
+      "name": "discover_modification_capabilities",
+      "description": "Discover available modification methods for any D365 object type using real-time reflection."
+    },
+    {
+      "name": "execute_object_modification",
+      "description": "Execute batch D365 object modifications with per-operation tracking and detailed error reporting."
+    },
+    {
+      "name": "get_label",
+      "description": "Get D365 F&O label text by label ID from local metadata files with multi-language support."
+    },
+    {
+      "name": "get_labels_batch",
+      "description": "Retrieve multiple D365 F&O label texts efficiently in a single request with multi-language support."
+    }
+  ],
+  "tools_generated": false,
+  "user_config": {
+    "xpp_path": {
+      "type": "directory",
+      "title": "PackagesLocalDirectory Path",
+      "description": "Path to the D365 Finance & Operations PackagesLocalDirectory (e.g., K:\\AosService\\PackagesLocalDirectory). If not provided, the server will attempt to get this from the VS2022 service automatically.",
+      "required": false
+    },
+    "xpp_metadata_folder": {
+      "type": "directory",
+      "title": "Custom Metadata Output Path",
+      "description": "Path where newly created D365 objects will be written. If not provided, the server will use the default location from the VS2022 service.",
+      "required": false
+    },
+    "vs2022_extension_path": {
+      "type": "directory",
+      "title": "VS2022 D365 Extension Path",
+      "description": "Path to the Visual Studio 2022 D365 Finance & Operations extension directory. Auto-detected if not provided.",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "win32"
+    ],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

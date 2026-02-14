@@ -81,6 +81,9 @@ tests/comprehensive-test-suite.mjs
 # Output of 'npm pack'
 *.tgz
 
+# MCPB bundle output
+*.mcpb
+
 # Yarn Integrity file
 .yarn-integrity
 
